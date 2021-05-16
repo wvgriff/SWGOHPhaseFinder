@@ -14,6 +14,7 @@ namespace SWGOHPhaseFinder
     public class API
     {
         private string token;
+        private DateTime timeoutTime;
         private HttpClient client;
 
         public API()
@@ -22,6 +23,11 @@ namespace SWGOHPhaseFinder
             {
                 BaseAddress = new Uri("https://api.swgoh.help")
             };
+        }
+
+        ~API()
+        {
+            client.Dispose();
         }
 
         public async Task Login()
@@ -41,29 +47,29 @@ namespace SWGOHPhaseFinder
             request.Content = new FormUrlEncodedContent(payload);
             using var response = await client.SendAsync(request);
 
+            if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException($"login request returned error: {response.StatusCode}");
+
             var stringResponse = await response.Content.ReadAsStringAsync();
 
-            token = JsonSerializer.Deserialize<SigninResponse>(stringResponse).Access_Token;
+            var signinResponse = JsonSerializer.Deserialize<SigninResponse>(stringResponse);
+
+            token = signinResponse.Access_Token;
+
+            timeoutTime = DateTime.Now.AddSeconds(signinResponse.Expires_In);
         }
         
         private HttpRequestMessage SetupMessage()
         {
+            if (DateTime.Now > timeoutTime)
+            {
+                throw new Exception("Please login again, login has timed out");
+            }
             var request = new HttpRequestMessage();
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token); //new AuthenticationHeaderValue($"\"Bearer\" + {token}");
             request.Headers.Add("content-type", "application/json");
 
             return request;
         }
-
-        public async Task GetPlayerInfo(int[] players)
-        {
-
-            var request = new HttpRequestMessage();
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token); //new AuthenticationHeaderValue($"\"Bearer\" + {token}");
-            request.Headers.Add("content-type", "application/json");
-
-        }
-
-
     }
 }
