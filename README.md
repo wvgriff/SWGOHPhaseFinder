@@ -1,1 +1,2 @@
 # SWGOHPhaseFinder
+Tier List Guide
