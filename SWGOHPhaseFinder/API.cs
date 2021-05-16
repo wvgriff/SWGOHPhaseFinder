@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text;
 using System.Threading.Tasks;
 using SWGOHPhaseFinder.Models;
+using System.Net.Http.Headers;
 
 namespace SWGOHPhaseFinder
 {
@@ -36,12 +37,33 @@ namespace SWGOHPhaseFinder
                 { "client_id", "abc" },
                 { "client_secret", "123" }};
 
-            var message = new HttpRequestMessage(HttpMethod.Post, "/auth/signin");
-            message.Content = new FormUrlEncodedContent(payload);
-            var request = await client.SendAsync(message);
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/auth/signin");
+            request.Content = new FormUrlEncodedContent(payload);
+            using var response = await client.SendAsync(request);
 
-            token = JsonSerializer.Deserialize<SigninResponse>(await request.Content.ReadAsStringAsync()).access_token;
+            var stringResponse = await response.Content.ReadAsStringAsync();
+
+            token = JsonSerializer.Deserialize<SigninResponse>(stringResponse).Access_Token;
         }
+        
+        private HttpRequestMessage SetupMessage()
+        {
+            var request = new HttpRequestMessage();
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token); //new AuthenticationHeaderValue($"\"Bearer\" + {token}");
+            request.Headers.Add("content-type", "application/json");
+
+            return request;
+        }
+
+        public async Task GetPlayerInfo(int[] players)
+        {
+
+            var request = new HttpRequestMessage();
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token); //new AuthenticationHeaderValue($"\"Bearer\" + {token}");
+            request.Headers.Add("content-type", "application/json");
+
+        }
+
 
     }
 }

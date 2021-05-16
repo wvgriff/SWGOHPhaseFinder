@@ -2,14 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace SWGOHPhaseFinder.Models
 {
     public class SigninResponse
     {
-        public string token_type { get; set; }
-        public string access_token { get; set; }
-        public int expires_in { get; set; }
+        [JsonPropertyName("token_type")]
+        public string Token_Type { get; set; }
+        [JsonPropertyName("access_token")]
+        public string Access_Token { get; set; }
+        [JsonPropertyName("expires_in")]
+        public int Expires_In { get; set; }
     }
 }
